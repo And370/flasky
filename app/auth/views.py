@@ -1,18 +1,11 @@
-<< << << < Updated
-upstream
-from flask import render_template
 from . import  auth
-
-@auth.rout('/login')
-def log():
-    return render_template('auth/login.html')
-
-== == == =
 from flask import render_template, redirect, flash, request, url_for
 from . import auth
 from flask_login import login_required, login_user, logout_user
-from .forms import LoginForm
+from .forms import LoginForm, RegistrationForm
 from ..models import User
+from .. import db
+from ..email import send_email
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -20,8 +13,8 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user is not None and User.verify_password(form.password.data):
-            login_user(user, form.remenber_me.data)
+        if user is not None and user.verify_password(form.password.data):
+            login_user(user, form.remember_me.data)
             return redirect(request.args.get('next') or url_for('main.index'))
         flash('Invalid username or password!')
     return render_template('auth/login.html', form=form)
@@ -34,11 +27,24 @@ def logout():
     flash('You have been logged out.')
     return redirect(url_for('main.index'))
 
-
 @auth.route('/secret')
 @login_required
 def secret():
     return 'Only authenticated users are allowed!'
 
->> >> >> > Stashed
-changes
+
+@auth.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(email=form.email.data,
+                    username=form.username.data,
+                    password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        token = user.generated_comfirm_token()
+        send_email(user.email, 'Confirm Your Account',
+                   'auth/email/confirm', user=user, token=token)
+        flash('A confirmation email has been sent to you by email.')
+        return redirect(url_for('main.index'))
+    return render_template('auth/register.html', form=form)
