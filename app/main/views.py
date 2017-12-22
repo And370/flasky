@@ -1,11 +1,11 @@
-from flask import render_template, session, redirect, url_for, current_app, abort
+from flask import render_template, session, redirect, url_for, current_app, abort, flash
 from .. import db
 from ..models import User, Permission
 from ..email import send_email
 from . import main
-from .forms import NameForm
+from .forms import NameForm, EditProfileForm
 from ..decorators import admin_required, permission_required
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -30,12 +30,29 @@ def index():
                            known=session.get('known', False))
 
 
-@main.route('user/<username>')
+@main.route('/user/<username>')
 def user(username):
     the_user = User.query.filter_by(username=username).first()
     if the_user is None:
         abort(403)
     return render_template('user.html', user=the_user)
+
+
+@main.route('/edit-profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+    if form.validate_on_submit():
+        current_user.name = form.name.data
+        current_user.location = form.location.data
+        current_user.about_me = form.about_me.data
+        db.session.add(current_user)
+        flash('Your profile has been updated.')
+        return redirect(url_for('.user', username=current_user.username))
+    form.name.data = current_user.name
+    form.location.data = current_user.location
+    form.about_me.data = current_user.about_me
+    return render_template('edit_profile.html', form=form)
 
 
 @main.route('/admin')

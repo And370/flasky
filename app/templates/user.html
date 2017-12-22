@@ -14,11 +14,18 @@
                 {% endif %}
             </p>
         {% endif %}
+        {% if user == current_user %}
+            <a class="btn btn-default" href="{{ url_for('.edit-profile') }}">
+                Edit Profile
+            </a>
+        {% endif %}
         {% if current_user.is_administrator() %}
             <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
         {% endif %}
         {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
         <p>Member since {{ moment(user.member_since).format('L') }}. Last
             seen {{ moment(user.last_seen).fromNow() }}.</p>
+        <A href="tencent://message/?uin=624661413&amp;Site=有事Q我&amp;Menu=yes">
+            <img style="border:0px;" src=http://wpa.qq.com/pa?p=1:624661413:7></a>
     </div>
 {% endblock %}
