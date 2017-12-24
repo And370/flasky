@@ -61,6 +61,7 @@ class User(db.Model, UserMixin):
     about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
+    head_portrait = db.Column(db.LargeBinary(length=2048))
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -125,6 +126,9 @@ class AnonymousUser(AnonymousUserMixin):
 
     def is_administrator(self):
         return False
+
+
+login_manager.anonymous_user = AnonymousUser
 
 
 @login_manager.user_loader
