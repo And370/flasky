@@ -22,7 +22,7 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired(),
                                                      EqualTo('confirmpassword', message='Passwords must match!')])
     confirmpassword = PasswordField('Confirm Password', validators=[DataRequired()])
-    head_portrait = FileField('Upload your head portrait.', validators=[])
+    # head_portrait = FileField('Upload your head portrait.', validators=[])
     submit = SubmitField('Register')
 
     def validate_email(self, field):

@@ -14,8 +14,8 @@
                 {% endif %}
             </p>
         {% endif %}
-        {% if head_portrait %}
-            <p><img src="data:image/jpeg;base64,{{ head_portrait }}" alt="The head portrait." width="300" height="300"/>
+        {% if user.head_portrait %}
+            <p><img src="{{ user.head_portrait }}" alt="The head portrait." width="300" height="300"/>
             </p>
         {% endif %}
         {% if user == current_user %}

@@ -1,17 +1,15 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField, ValidationError, FileField
 from wtforms.validators import DataRequired, Length, Email, Regexp
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
 from ..models import Role, User
-
-
-class NameForm(FlaskForm):
-    name = StringField('What is your name?', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+from flask import request
 
 
 class EditProfileForm(FlaskForm):
     name = StringField('Real name', validators=[Length(0, 64)])
-    head_portrait = FileField('Upload your head portrait.', validators=[])
+    head_portrait = FileField('Upload your head portrait.(Within 1MB)', validators=[])
     location = StringField('Location', validators=[Length(0, 64)])
     about_me = TextAreaField('About me')
     submit = SubmitField('Submit')
@@ -44,3 +42,10 @@ class EditProfileAdminForm(FlaskForm):
     def validate_username(self, field):
         if field.data != self.user.username and User.query.filter_by(username=field.data).first():
             raise ValidationError('Username already registered.')
+
+
+'''
+    def validate_head_portrait(self, field):
+        if request.files['head_portrait']
+            raise ValidationError('Email already registered.')
+        '''
