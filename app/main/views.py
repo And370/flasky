@@ -1,10 +1,11 @@
 from flask import render_template, session, redirect, url_for, current_app, abort, flash, request
 from .. import db
-from ..models import User, Permission, Role
+from ..models import User, Permission, Role, Post
 from . import main
-from .forms import EditProfileForm, EditProfileAdminForm
+from .forms import EditProfileForm, EditProfileAdminForm, PostForm
 from ..decorators import admin_required, permission_required
 from flask_login import login_required, current_user
+from wtforms import ValidationError
 import base64
 from flasky import photos
 from flask_uploads import UploadNotAllowed
@@ -12,10 +13,14 @@ from flask_uploads import UploadNotAllowed
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    if current_user.is_authenticated:  # 如果已登录，则传入头像二进制数据流并显示头像
-        return render_template('index.html', username=current_user.username)
-        # head_portrait=head_portrait)
-    return render_template('index.html')
+    form = PostForm()
+    if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
+        post = Post(body=form.body.data,
+                    author=current_user._get_current_object())
+        db.session.add(post)
+        return redirect('index.html', username=current_user.username, form=form)
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('index.html', form=form, posts=posts)
 
 
 '''
@@ -61,21 +66,24 @@ def image(username):
 def user(username):
     the_user = User.query.filter_by(username=username).first()
     if the_user is None:  # base64.b64encode(user.head_portrait).split()
-        abort(404)  # str(base64.b64encode(a2.read()))[1:].replace("'","")
+        abort(404)
+        # str(base64.b64encode(a2.read()))[1:].replace("'","")
         # head_portrait = str(base64.b64encode(the_user.head_portrait))[1:].replace("'", "")
-
         # image_url = photos.url(the_user.head_portrait)
     return render_template('user.html', user=the_user)
 
-    # return render_template('user.html', user=the_user)
     # head_portrait=head_portrait)
 
 
+# 为解决中文文件上传问题 修改了Werkzeug.utils.secure_file  在utils281行
 @main.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
     form = EditProfileForm()
+    # 当表单被提交的时候会同时对内容使用validator_开头的函数进行验证
     if form.validate_on_submit():
+        # if int(request.headers['Content-Length'])-(0.1 * 1024 * 1024) > (1.1 * 1024 * 1024):
+        #    raise ValidationError('Upload file too large.')
         '''
         user = current_user(name=form.name.data,
                             location=form.location.data,
@@ -84,21 +92,27 @@ def edit_profile():
 
         # current_user.head_portrait = request.files['head_portrait'].read()  # bytes' data  ↑b64encode
         # 保存表单内提交的文件并返回文件名
-
         try:
             current_user.name = form.name.data
             current_user.location = form.location.data
             current_user.about_me = form.about_me.data
-            current_user.head_portrait = photos.url(photos.save(request.files['head_portrait'],
-                                                                name=current_user.username + '.'))
+            if form.head_portrait.data:
+                current_user.head_portrait = photos.url(photos.save(form.head_portrait.data,
+                                                                    name=current_user.username + '.'))
+            # test = str(form.head_portrait.data.read(), encoding='utf8')
+            # test = len(form.head_portrait.data.read())
+            # bs = str(b, encoding="utf8")
+            db.session.add(current_user)
+            db.session.commit()
+            flash('Your profile has been updated.')
         except UploadNotAllowed as e:
             abort(413)
-        db.session.add(current_user)
-        db.session.commit()
-        flash('Your profile has been updated.')
+        # 原本为了捕捉上传文件错误
+        # except UploadNotAllowed as e:
+        #   abort(413)
+        # test = form.head_portrait.data.content_length
         return redirect(url_for('.user', username=current_user.username))
         # except: raise UploadNotAllowed
-
         # image_url = photos.url(current_user.head_portrait)
         # head_portrait = str(base64.b64encode(current_user.head_portrait))[1:].replace("'", "")
     form.name.data = current_user.name

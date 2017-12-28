@@ -14,6 +14,16 @@ class EditProfileForm(FlaskForm):
     about_me = TextAreaField('About me')
     submit = SubmitField('Submit')
 
+    # 上传文件大小验证，大于1MB则拒绝并flash()
+    def validate_head_portrait(self, field):
+        # if not (field.data.content_length <(1*1024*1024)):
+        # 不知道为什么这里使用↑的方法失败，按理应该等价
+
+        if int(request.headers['Content-Length']) > (1.02 * 1024 * 1024):
+            raise ValidationError('Upload file too large.')
+            # if request.files['head_portrait'].filename
+            # 可提前检查文件名
+
 
 class EditProfileAdminForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Length(1, 64),
@@ -41,11 +51,9 @@ class EditProfileAdminForm(FlaskForm):
 
     def validate_username(self, field):
         if field.data != self.user.username and User.query.filter_by(username=field.data).first():
-            raise ValidationError('Username already registered.')
+            raise ValidationError('Username already registered.%c' % request.headers['Content-Length'])
 
 
-'''
-    def validate_head_portrait(self, field):
-        if request.files['head_portrait']
-            raise ValidationError('Email already registered.')
-        '''
+class PostForm(FlaskForm):
+    body = TextAreaField('你想做个什么预测？', validators=[DataRequired])
+    submit = SubmitField('提交')
