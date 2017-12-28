@@ -55,5 +55,5 @@ class EditProfileAdminForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    body = TextAreaField('你想做个什么预测？', validators=[DataRequired])
+    body = TextAreaField('你想做个什么预测？', validators=[DataRequired()])
     submit = SubmitField('提交')
