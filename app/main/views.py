@@ -71,7 +71,8 @@ def user(username):
         # str(base64.b64encode(a2.read()))[1:].replace("'","")
         # head_portrait = str(base64.b64encode(the_user.head_portrait))[1:].replace("'", "")
         # image_url = photos.url(the_user.head_portrait)
-    return render_template('user.html', user=the_user)
+    posts = the_user.posts.order_by(Post.timestamp.desc()).all()
+    return render_template('user.html', user=the_user, posts=posts)
 
     # head_portrait=head_portrait)
 

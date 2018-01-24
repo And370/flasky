@@ -2,7 +2,7 @@ import os
 from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 from app import create_app, db
-from app.models import User, Role
+from app.models import User, Role, Post
 import flask_uploads
 from flask_uploads import configure_uploads, UploadSet, IMAGES, UploadConfiguration, uploads_mod
 from flask import Blueprint
@@ -21,7 +21,7 @@ configure_uploads(app, photos)
 
 @app.shell_context_processor
 def make_shell_context():
-    return dict(db=db, User=User, Role=Role)
+    return dict(db=db, User=User, Role=Role, Post=Post)
 
 
 manager.add_command('shell', Shell(make_context=make_shell_context))
