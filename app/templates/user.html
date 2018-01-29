@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import '_macros.html' as macros %}
 
 {% block title %}Flasky - {{ user.username }}{% endblock %}
 
@@ -14,6 +15,7 @@
                 {% endif %}
             </p>
         {% endif %}
+        <!-- 头像显示区 head_portrait -->
         {% if user.head_portrait %}
             <p><img src="{{ user.head_portrait }}" alt="The head portrait." width="300" height="300"/>
             </p>
@@ -39,4 +41,9 @@
     </div>
     <h3>Posts by {{ user.username }}</h3>
     {% include('_posts.html') %}
+    {% if pagination %}
+        <div class="pagination">
+            {{ macros.pagination_widget(pagination, '.user', username=user.username) }}
+        </div>
+    {% endif %}
 {% endblock %}

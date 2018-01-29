@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from ..models import Role, User
 from flask import request
+from flask_pagedown.fields import PageDownField
 
 
 class EditProfileForm(FlaskForm):
@@ -55,5 +56,5 @@ class EditProfileAdminForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    body = TextAreaField('你想做个什么预测？', validators=[DataRequired()])
+    body = PageDownField('你想做个什么预测？', validators=[DataRequired()])
     submit = SubmitField('提交')
